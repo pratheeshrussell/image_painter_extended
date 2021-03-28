@@ -6,9 +6,13 @@ import 'dart:async';
 import 'dart:typed_data';
 
 class ImagePainter extends StatefulWidget {
+  /// Then painter controller
   final PainterController painterController;
 
-  ImagePainter(PainterController painterController, {Key key })
+  /// That controller will handle all properties of your drawing space.
+  /// The key will be used to refresh state of the widget,
+  /// in case you decide to programmatically pan and zoom the image.
+  ImagePainter(PainterController painterController, {Key key})
       : this.painterController = painterController,
         super(key: key ?? ValueKey<PainterController>(painterController));
 
@@ -26,7 +30,6 @@ class ImagePainterState extends State<ImagePainter> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.painterController.widgetSize = context.size;
     });
-     
   }
 
   @override
@@ -37,7 +40,7 @@ class ImagePainterState extends State<ImagePainter> {
           repaint: widget.painterController),
     );
     child = ClipRect(child: child);
-    if ( widget.painterController.drawMode) {
+    if (widget.painterController.drawMode) {
       child = new GestureDetector(
         child: child,
         onPanStart: _onPanStart,
@@ -45,28 +48,29 @@ class ImagePainterState extends State<ImagePainter> {
         onPanEnd: _onPanEnd,
       );
     }
-    
+
     if (widget.painterController.backgroundImage == null) {
       child = RepaintBoundary(
-        key: _globalKey,
-        child: InteractiveViewer(
-        transformationController: widget.painterController.interactionController,
-        child:child,)
-     
-      );
+          key: _globalKey,
+          child: InteractiveViewer(
+            transformationController:
+                widget.painterController.interactionController,
+            child: child,
+          ));
     } else {
       child = RepaintBoundary(
         key: _globalKey,
         child: InteractiveViewer(
-        transformationController: widget.painterController.interactionController,
-        child:Stack(
-          alignment: FractionalOffset.center,
-          fit: StackFit.expand,
-          children: <Widget>[
-            widget.painterController.backgroundImage,
-            child
-          ],
-        )),
+            transformationController:
+                widget.painterController.interactionController,
+            child: Stack(
+              alignment: FractionalOffset.center,
+              fit: StackFit.expand,
+              children: <Widget>[
+                widget.painterController.backgroundImage,
+                child
+              ],
+            )),
       );
     }
     return Container(
@@ -83,9 +87,9 @@ class ImagePainterState extends State<ImagePainter> {
     double transX = widget.painterController.interactionController.value[12];
     double transY = widget.painterController.interactionController.value[13];
 
-    Offset pos = Offset(((temppos.dx - transX )/ scale) , ((temppos.dy - transY) / scale));
-    
-    
+    Offset pos = Offset(
+        ((temppos.dx - transX) / scale), ((temppos.dy - transY) / scale));
+
     widget.painterController._pathHistory.add(pos);
     widget.painterController._notifyListeners();
   }
@@ -98,9 +102,9 @@ class ImagePainterState extends State<ImagePainter> {
     double transX = widget.painterController.interactionController.value[12];
     double transY = widget.painterController.interactionController.value[13];
 
-    Offset pos = Offset(((temppos.dx - transX)/ scale) , ((temppos.dy - transY) / scale));
-    
- 
+    Offset pos = Offset(
+        ((temppos.dx - transX) / scale), ((temppos.dy - transY) / scale));
+
     widget.painterController._pathHistory.updateCurrent(pos);
     widget.painterController._notifyListeners();
   }
@@ -146,8 +150,6 @@ class _PathHistory {
   }
 
   bool canUndo() => _paths.length > 0;
-
-
 
   set eraseArea(double r) {
     _eraseArea = r;
@@ -196,12 +198,15 @@ class _PathHistory {
         path.lineTo(nextPoint.dx, nextPoint.dy);
         _startFlag = false;
       } else {
-        for (int i=0; i<_paths.length; i++) {
+        for (int i = 0; i < _paths.length; i++) {
           _pathFound = false;
-          for (double x = nextPoint.dx - _eraseArea; x <= nextPoint.dx + _eraseArea; x++) {
-            for (double y = nextPoint.dy - _eraseArea; y <= nextPoint.dy + _eraseArea; y++) {
-              if (_paths[i].key.contains(new Offset(x, y)))
-              {
+          for (double x = nextPoint.dx - _eraseArea;
+              x <= nextPoint.dx + _eraseArea;
+              x++) {
+            for (double y = nextPoint.dy - _eraseArea;
+                y <= nextPoint.dy + _eraseArea;
+                y++) {
+              if (_paths[i].key.contains(new Offset(x, y))) {
                 _undone.add(_paths.removeAt(i));
                 i--;
                 _pathFound = true;
@@ -219,8 +224,10 @@ class _PathHistory {
 
   void endCurrent() {
     Path path = _paths.last.key;
-    if ((_startFlag) && (!erase)) { //if it was just a tap, draw a point and reset a flag
-      path.addOval(Rect.fromCircle(center: new Offset(_startX, _startY), radius: 1.0));
+    if ((_startFlag) && (!erase)) {
+      //if it was just a tap, draw a point and reset a flag
+      path.addOval(
+          Rect.fromCircle(center: new Offset(_startX, _startY), radius: 1.0));
       _startFlag = false;
     }
     _inDrag = false;
@@ -236,6 +243,7 @@ class _PathHistory {
 }
 
 class PainterController extends ChangeNotifier {
+  /// The controller that can be used to pan and zoom
   TransformationController interactionController = TransformationController();
   Color _drawColor = Color.fromARGB(255, 0, 0, 0);
   Color _backgroundColor = Color.fromARGB(255, 255, 255, 255);
@@ -246,7 +254,10 @@ class PainterController extends ChangeNotifier {
   double _erasethickness = 1.0;
   _PathHistory _pathHistory;
   GlobalKey _globalKey;
-  
+
+  /// Use this to set mode as draw or transform
+  /// if you plan to use buttons to pan and zoom set as true
+  /// true by default
   bool drawMode = true;
 
   PainterController() {
@@ -254,29 +265,36 @@ class PainterController extends ChangeNotifier {
   }
 
   Color get drawColor => _drawColor;
+
+  /// The color of the line
   set drawColor(Color color) {
     _drawColor = color;
     _updatePaint();
   }
 
+  /// The color of the canvas
   Color get backgroundColor => _backgroundColor;
   set backgroundColor(Color color) {
     _backgroundColor = color;
     _updatePaint();
   }
 
+  /// Sets a background image.
+  /// You can load images as you would normally do: From an asset, from the network, from memory
   mat.Image get backgroundImage => _bgimage;
   set backgroundImage(mat.Image image) {
     _bgimage = image;
     _updatePaint();
   }
 
+  /// sets the line thickness
   double get thickness => _thickness;
   set thickness(double t) {
     _thickness = t;
     _updatePaint();
   }
 
+  /// Eraser thickness
   double get erasethickness => _erasethickness;
   set erasethickness(double t) {
     _erasethickness = t;
@@ -287,7 +305,7 @@ class PainterController extends ChangeNotifier {
   bool get eraser => _pathHistory.erase; //setter / getter for eraser
   set eraser(bool e) {
     _pathHistory.erase = e;
-    _pathHistory._eraseArea =  _erasethickness;
+    _pathHistory._eraseArea = _erasethickness;
     _updatePaint();
   }
 
@@ -327,19 +345,22 @@ class PainterController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// gets the Path drawn as Uint8List
   Future<Uint8List> getPathBytes() async {
     PictureRecorder recorder = new PictureRecorder();
     Canvas _canvas = new Canvas(recorder);
     _pathHistory.draw(_canvas, widgetSize);
-    Picture picture =  recorder.endRecording();
-    Image image = await picture.toImage(widgetSize.width.floor(), widgetSize.height.floor());
+    Picture picture = recorder.endRecording();
+    Image image = await picture.toImage(
+        widgetSize.width.floor(), widgetSize.height.floor());
     return (await image.toByteData(format: ImageByteFormat.png))
         .buffer
         .asUint8List();
   }
 
+  /// gets the Image and Paths drawn as Uint8List
   Future<Uint8List> getPNGBytes() async {
-   // interactionController.value = Matrix4.identity();
+    // interactionController.value = Matrix4.identity();
     RenderRepaintBoundary boundary =
         _globalKey.currentContext.findRenderObject();
     Image image = await boundary.toImage();
