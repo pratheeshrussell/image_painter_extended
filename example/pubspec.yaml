@@ -24,7 +24,7 @@ dependencies:
   flutter:
     sdk: flutter
   path_provider: ^2.0.1
-  flutter_switch: ^0.2.2
+  flutter_switch: ^0.3.2
   image_painter_extended:
     path: ../
 
