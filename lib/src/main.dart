@@ -12,7 +12,7 @@ class ImagePainter extends StatefulWidget {
   /// That controller will handle all properties of your drawing space.
   /// The key will be used to refresh state of the widget,
   /// in case you decide to programmatically pan and zoom the image.
-  ImagePainter(PainterController painterController, {Key key})
+  ImagePainter(PainterController painterController, {Key? key})
       : this.painterController = painterController,
         super(key: key ?? ValueKey<PainterController>(painterController));
 
@@ -27,7 +27,7 @@ class ImagePainterState extends State<ImagePainter> {
   void initState() {
     super.initState();
     widget.painterController._globalKey = _globalKey;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
       widget.painterController.widgetSize = context.size;
     });
   }
@@ -67,7 +67,7 @@ class ImagePainterState extends State<ImagePainter> {
               alignment: FractionalOffset.center,
               fit: StackFit.expand,
               children: <Widget>[
-                widget.painterController.backgroundImage,
+                widget.painterController.backgroundImage ?? Container(),
                 child
               ],
             )),
@@ -90,7 +90,7 @@ class ImagePainterState extends State<ImagePainter> {
     Offset pos = Offset(
         ((temppos.dx - transX) / scale), ((temppos.dy - transY) / scale));
 
-    widget.painterController._pathHistory.add(pos);
+    widget.painterController._pathHistory!.add(pos);
     widget.painterController._notifyListeners();
   }
 
@@ -105,24 +105,24 @@ class ImagePainterState extends State<ImagePainter> {
     Offset pos = Offset(
         ((temppos.dx - transX) / scale), ((temppos.dy - transY) / scale));
 
-    widget.painterController._pathHistory.updateCurrent(pos);
+    widget.painterController._pathHistory!.updateCurrent(pos);
     widget.painterController._notifyListeners();
   }
 
   void _onPanEnd(DragEndDetails end) {
-    widget.painterController._pathHistory.endCurrent();
+    widget.painterController._pathHistory!.endCurrent();
     widget.painterController._notifyListeners();
   }
 }
 
 class _PainterPainter extends CustomPainter {
-  final _PathHistory _path;
+  final _PathHistory? _path;
 
-  _PainterPainter(this._path, {Listenable repaint}) : super(repaint: repaint);
+  _PainterPainter(this._path, {Listenable? repaint}) : super(repaint: repaint);
 
   @override
   void paint(Canvas canvas, Size size) {
-    _path.draw(canvas, size);
+    _path!.draw(canvas, size);
   }
 
   @override
@@ -130,13 +130,13 @@ class _PainterPainter extends CustomPainter {
 }
 
 class _PathHistory {
-  List<MapEntry<Path, Paint>> _paths;
-  List<MapEntry<Path, Paint>> _undone;
-  Paint currentPaint;
-  Paint _backgroundPaint;
-  bool _inDrag;
-  double _startX; //start X with a tap
-  double _startY; //start Y with a tap
+  late List<MapEntry<Path, Paint?>> _paths;
+  late List<MapEntry<Path, Paint?>> _undone;
+  Paint? currentPaint;
+  late Paint _backgroundPaint;
+  late bool _inDrag;
+  late double _startX; //start X with a tap
+  late double _startY; //start Y with a tap
   bool _startFlag = false;
   bool erase = false;
   double _eraseArea = 1.0;
@@ -186,7 +186,7 @@ class _PathHistory {
       _startX = startPoint.dx;
       _startY = startPoint.dy;
       _startFlag = true;
-      _paths.add(MapEntry<Path, Paint>(path, currentPaint));
+      _paths.add(MapEntry<Path, Paint?>(path, currentPaint));
     }
   }
 
@@ -236,8 +236,8 @@ class _PathHistory {
   void draw(Canvas canvas, Size size) {
     canvas.drawRect(
         Rect.fromLTWH(0.0, 0.0, size.width, size.height), _backgroundPaint);
-    for (MapEntry<Path, Paint> path in _paths) {
-      canvas.drawPath(path.key, path.value);
+    for (MapEntry<Path, Paint?> path in _paths) {
+      canvas.drawPath(path.key, path.value!);
     }
   }
 }
@@ -247,13 +247,13 @@ class PainterController extends ChangeNotifier {
   TransformationController interactionController = TransformationController();
   Color _drawColor = Color.fromARGB(255, 0, 0, 0);
   Color _backgroundColor = Color.fromARGB(255, 255, 255, 255);
-  mat.Image _bgimage;
-  Size widgetSize;
+  mat.Image? _bgimage;
+  Size? widgetSize;
 
   double _thickness = 1.0;
   double _erasethickness = 1.0;
-  _PathHistory _pathHistory;
-  GlobalKey _globalKey;
+  _PathHistory? _pathHistory;
+  late GlobalKey _globalKey;
 
   /// Use this to set mode as draw or transform
   /// if you plan to use buttons to pan and zoom set as true
@@ -281,8 +281,8 @@ class PainterController extends ChangeNotifier {
 
   /// Sets a background image.
   /// You can load images as you would normally do: From an asset, from the network, from memory
-  mat.Image get backgroundImage => _bgimage;
-  set backgroundImage(mat.Image image) {
+  mat.Image? get backgroundImage => _bgimage;
+  set backgroundImage(mat.Image? image) {
     _bgimage = image;
     _updatePaint();
   }
@@ -298,14 +298,14 @@ class PainterController extends ChangeNotifier {
   double get erasethickness => _erasethickness;
   set erasethickness(double t) {
     _erasethickness = t;
-    _pathHistory._eraseArea = t;
+    _pathHistory!._eraseArea = t;
     _updatePaint();
   }
 
-  bool get eraser => _pathHistory.erase; //setter / getter for eraser
+  bool get eraser => _pathHistory!.erase; //setter / getter for eraser
   set eraser(bool e) {
-    _pathHistory.erase = e;
-    _pathHistory._eraseArea = _erasethickness;
+    _pathHistory!.erase = e;
+    _pathHistory!._eraseArea = _erasethickness;
     _updatePaint();
   }
 
@@ -314,34 +314,34 @@ class PainterController extends ChangeNotifier {
     paint.color = drawColor;
     paint.style = PaintingStyle.stroke;
     paint.strokeWidth = thickness;
-    _pathHistory.currentPaint = paint;
+    _pathHistory!.currentPaint = paint;
     if (_bgimage != null) {
-      _pathHistory.backgroundColor = Color(0x00000000);
+      _pathHistory!.backgroundColor = Color(0x00000000);
     } else {
-      _pathHistory.backgroundColor = _backgroundColor;
+      _pathHistory!.backgroundColor = _backgroundColor;
     }
     notifyListeners();
   }
 
   void undo() {
-    _pathHistory.undo();
+    _pathHistory!.undo();
     notifyListeners();
   }
 
   void redo() {
-    _pathHistory.redo();
+    _pathHistory!.redo();
     notifyListeners();
   }
 
-  bool get canUndo => _pathHistory.canUndo();
-  bool get canRedo => _pathHistory.canRedo();
+  bool get canUndo => _pathHistory!.canUndo();
+  bool get canRedo => _pathHistory!.canRedo();
 
   void _notifyListeners() {
     notifyListeners();
   }
 
   void clear() {
-    _pathHistory.clear();
+    _pathHistory!.clear();
     notifyListeners();
   }
 
@@ -349,11 +349,11 @@ class PainterController extends ChangeNotifier {
   Future<Uint8List> getPathBytes() async {
     PictureRecorder recorder = new PictureRecorder();
     Canvas _canvas = new Canvas(recorder);
-    _pathHistory.draw(_canvas, widgetSize);
+    _pathHistory!.draw(_canvas, widgetSize!);
     Picture picture = recorder.endRecording();
     Image image = await picture.toImage(
-        widgetSize.width.floor(), widgetSize.height.floor());
-    return (await image.toByteData(format: ImageByteFormat.png))
+        widgetSize!.width.floor(), widgetSize!.height.floor());
+    return (await image.toByteData(format: ImageByteFormat.png))!
         .buffer
         .asUint8List();
   }
@@ -362,9 +362,9 @@ class PainterController extends ChangeNotifier {
   Future<Uint8List> getPNGBytes() async {
     // interactionController.value = Matrix4.identity();
     RenderRepaintBoundary boundary =
-        _globalKey.currentContext.findRenderObject();
+        _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
     Image image = await boundary.toImage();
-    ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
+    ByteData byteData = await (image.toByteData(format: ImageByteFormat.png) as FutureOr<ByteData>);
     return byteData.buffer.asUint8List();
   }
 }

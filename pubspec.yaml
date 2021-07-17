@@ -1,11 +1,11 @@
 name: image_painter_extended
 description: This is a Flutter package that allows user to draw over images. This is an extension of the painter2 package with option to zoom and draw.
-version: 0.0.2
+version: 0.0.3
 author: Pratheesh Russell.S
 repository: https://github.com/pratheeshrussell/image_painter_extended
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: '>=2.12.0 <3.0.0'
   flutter: ">=1.17.0"
 
 dependencies:
