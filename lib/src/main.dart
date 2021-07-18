@@ -364,7 +364,8 @@ class PainterController extends ChangeNotifier {
     RenderRepaintBoundary boundary =
         _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
     Image image = await boundary.toImage();
-    ByteData byteData = await (image.toByteData(format: ImageByteFormat.png) as FutureOr<ByteData>);
+    ByteData byteData = await (image.toByteData(format: ImageByteFormat.png)
+        as FutureOr<ByteData>);
     return byteData.buffer.asUint8List();
   }
 }
